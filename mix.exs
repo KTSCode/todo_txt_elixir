@@ -1,4 +1,4 @@
-defmodule TodotxtElixir.MixProject do
+defmodule TodoTxt.MixProject do
   use Mix.Project
 
   def project do
