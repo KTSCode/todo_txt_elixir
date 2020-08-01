@@ -10,11 +10,22 @@ defmodule TodoTxt do
 
   ## Examples
 
-      iex>
-      :world
+      iex> TodoTxt.parse(["x done", "todo"])
+      %TodoTxt{todos: [%Todo{description: "", done: false}], done_todos: [%Todo{description: "", done: true}]}
 
   """
-  def hello do
-    :world
+  def parse(input) do
+    input.map(&parse_helper/1)
+  end
+
+  defp parse_helper(todo_string) do
+    case todo_string do
+      "x " <> description ->
+        %Todo{description: description, done: true}
+
+      description ->
+        %Todo{description: description, done: false}
+        model
+    end
   end
 end
