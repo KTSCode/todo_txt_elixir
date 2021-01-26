@@ -4,7 +4,7 @@ defmodule Todo do
   """
   @enforce_keys [:description]
   defstruct done: false,
-            priority: nil,
+            priority: :none,
             completion_date: nil,
             creation_date: nil,
             description: nil,
@@ -12,17 +12,4 @@ defmodule Todo do
             contexts: [],
             due_date: nil,
             additional_fields: %{}
-
-  @doc """
-  parse todo.txt into a struct
-
-  ## Examples
-
-      iex>
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
