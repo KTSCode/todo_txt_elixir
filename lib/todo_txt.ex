@@ -34,8 +34,11 @@ defmodule TodoTxt do
       iex> TodoTxt.parse_todo("(A) top priority")
       %Todo{description: "top priority", priority: :A }
 
-      iex> TodoTxt.parse_todo("todo with @Context1 and @Context2")
-      %Todo{description: "todo with @Context1 and @Context2", contexts: [:Context1, :Context2]}
+      iex> TodoTxt.parse_todo("todo with @Context1 and @Context_2")
+      %Todo{description: "todo with @Context1 and @Context_2", contexts: [:Context1, :Context_2]}
+
+      iex> TodoTxt.parse_todo("todo with +Project_1 and +project2")
+      %Todo{description: "todo with +Project_1 and +project2", projects: [:Project_1, :project2]}
   """
   def parse_todo(todo_string) do
     {done_bool, undone_todo_string} = done_task_check(todo_string)
@@ -45,7 +48,8 @@ defmodule TodoTxt do
       description: deprioritized_string,
       done: done_bool,
       priority: priority,
-      contexts: get_contexts(deprioritized_string)
+      contexts: get_contexts(deprioritized_string),
+      projects: get_projects(deprioritized_string)
     }
   end
 
@@ -55,6 +59,15 @@ defmodule TodoTxt do
     |> List.flatten()
     |> Enum.map(&String.trim/1)
     |> Enum.map(&String.trim(&1, "@"))
+    |> Enum.map(&String.to_atom/1)
+  end
+
+  defp get_projects(todo_string) do
+    ~r/\s\+\S*/
+    |> Regex.scan(todo_string)
+    |> List.flatten()
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&String.trim(&1, "+"))
     |> Enum.map(&String.to_atom/1)
   end
 

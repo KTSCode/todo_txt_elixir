@@ -33,14 +33,12 @@ defmodule TodoTxt.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:git_hooks, "~> 0.4.2", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.13.0", only: :test},
-      {:credo, "~> 1.4.0", only: :dev, runtime: false},
-      {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
+      {:credo, "~> 1.5.5", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.22.1", only: :dev, runtime: false}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_doc, "~> 0.23.0", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.13.0", only: :test},
+      {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
+      {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false}
     ]
   end
 end
