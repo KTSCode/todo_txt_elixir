@@ -39,18 +39,43 @@ defmodule TodoTxt do
 
       iex> TodoTxt.parse_todo("todo with +Project_1 and +project2")
       %Todo{description: "todo with +Project_1 and +project2", projects: [:Project_1, :project2]}
+
+      iex> TodoTxt.parse_todo("todo with due: 2021-09-13")
+      %Todo{description: "todo with", due_date: ~D[2021-09-13]}
+
   """
   def parse_todo(todo_string) do
     {done_bool, undone_todo_string} = done_task_check(todo_string)
-    {priority, deprioritized_string} = priority_task_check(undone_todo_string)
+    {priority, deprioritized_todo_string} = priority_task_check(undone_todo_string)
+    {due_date, dueless_todo_string} = due_task_check(deprioritized_todo_string)
 
     %Todo{
-      description: deprioritized_string,
+      description: dueless_todo_string,
       done: done_bool,
       priority: priority,
-      contexts: get_contexts(deprioritized_string),
-      projects: get_projects(deprioritized_string)
+      contexts: get_contexts(dueless_todo_string),
+      projects: get_projects(dueless_todo_string),
+      due_date: due_date
     }
+  end
+
+  defp due_task_check(todo_string) do
+    regex = ~r/\sdue: \d{4}-\d{2}-\d{2}/
+
+    due_date_parsed =
+      regex
+      |> Regex.split(todo_string, include_captures: true)
+      |> Enum.reject(&(&1 == ""))
+
+    if Regex.match?(regex, List.last(due_date_parsed)) do
+      [undude | due_date] = due_date_parsed
+
+      # Clean this up a bit
+      {Date.from_iso8601!(List.first(Regex.run(~r/\d{4}-\d{2}-\d{2}/, Enum.join(due_date, "")))),
+       undude}
+    else
+      {:none, todo_string}
+    end
   end
 
   defp get_contexts(todo_string) do
