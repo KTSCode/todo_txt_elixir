@@ -5,11 +5,11 @@ defmodule Todo do
   @enforce_keys [:description]
   defstruct done: false,
             priority: :none,
-            completion_date: nil,
-            creation_date: nil,
+            completion_date: :none,
+            creation_date: :none,
             description: nil,
             projects: [],
             contexts: [],
-            due_date: nil,
+            due_date: :none,
             additional_fields: %{}
 end
