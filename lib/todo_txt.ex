@@ -31,6 +31,9 @@ defmodule TodoTxt do
       iex> TodoTxt.parse_todo("x done")
       %Todo{description: "done", done: true}
 
+      iex> TodoTxt.parse_todo("x 2020-09-13 done")
+      %Todo{description: "done", done: true, completion_date: ~D[2020-09-13]}
+
       iex> TodoTxt.parse_todo("(A) top priority")
       %Todo{description: "top priority", priority: :A }
 
@@ -40,18 +43,19 @@ defmodule TodoTxt do
       iex> TodoTxt.parse_todo("todo with +Project_1 and +project2")
       %Todo{description: "todo with +Project_1 and +project2", projects: [:Project_1, :project2]}
 
-      iex> TodoTxt.parse_todo("todo with due: 2021-09-13")
-      %Todo{description: "todo with", due_date: ~D[2021-09-13]}
+      iex> TodoTxt.parse_todo("todo 2020-10-15 with due: 2021-09-13")
+      %Todo{description: "todo 2020-10-15 with", due_date: ~D[2021-09-13]}
 
   """
   def parse_todo(todo_string) do
-    {done_bool, undone_todo_string} = done_task_check(todo_string)
+    {done_bool, completion_date, undone_todo_string} = done_task_check(todo_string)
     {priority, deprioritized_todo_string} = priority_task_check(undone_todo_string)
     {due_date, dueless_todo_string} = due_task_check(deprioritized_todo_string)
 
     %Todo{
       description: dueless_todo_string,
       done: done_bool,
+      completion_date: completion_date,
       priority: priority,
       contexts: get_contexts(dueless_todo_string),
       projects: get_projects(dueless_todo_string),
@@ -60,22 +64,9 @@ defmodule TodoTxt do
   end
 
   defp due_task_check(todo_string) do
-    regex = ~r/\sdue: \d{4}-\d{2}-\d{2}/
+    %{date: date, todo: todo} = date_extracter(~r/\sdue: \d{4}-\d{2}-\d{2}/, todo_string)
 
-    due_date_parsed =
-      regex
-      |> Regex.split(todo_string, include_captures: true)
-      |> Enum.reject(&(&1 == ""))
-
-    if Regex.match?(regex, List.last(due_date_parsed)) do
-      [undude | due_date] = due_date_parsed
-
-      # Clean this up a bit
-      {Date.from_iso8601!(List.first(Regex.run(~r/\d{4}-\d{2}-\d{2}/, Enum.join(due_date, "")))),
-       undude}
-    else
-      {:none, todo_string}
-    end
+    {date, todo}
   end
 
   defp get_contexts(todo_string) do
@@ -115,10 +106,45 @@ defmodule TodoTxt do
   defp done_task_check(todo_string) do
     case todo_string do
       "x " <> clean_todo_string ->
-        {true, clean_todo_string}
+        %{date: date, todo: todo} = date_extracter(~r/^\d{4}-\d{2}-\d{2}\s/, clean_todo_string)
+        {true, date, todo}
 
       clean_todo_string ->
-        {false, clean_todo_string}
+        {false, :none, clean_todo_string}
+    end
+  end
+
+  @doc """
+  helper function that takes regex and a string, then uses the regex to find a pattern in the string and extract a date from it
+
+  ## Examples
+
+      iex> TodoTxt.date_extracter(~r/\\sdue: \\d{4}-\\d{2}-\\d{2}\/, "Give speech due: 1963-08-28")
+      %{date: ~D[1963-08-28], todo: "Give speech"}
+
+      iex> TodoTxt.date_extracter(~r/^\\d{4}-\\d{2}-\\d{2}\\s/, "1963-08-28 Give speech")
+      %{date: ~D[1963-08-28], todo: "Give speech"}
+
+      iex> TodoTxt.date_extracter(~r/^\\d{4}-\\d{2}-\\d{2}\\s/, "1963-08-28 Give speech, save the date: 1964-10-14")
+      %{date: ~D[1963-08-28], todo: "Give speech, save the date: 1964-10-14"}
+
+  """
+
+  def date_extracter(regex, todo_string_with_date) do
+    split = Regex.split(regex, todo_string_with_date, include_captures: true)
+
+    date =
+      split
+      |> Enum.reject(&(!Regex.match?(regex, &1)))
+      |> List.to_string()
+      |> (fn string -> Regex.scan(~r/\d{4}-\d{2}-\d{2}/, string) end).()
+      |> List.to_string()
+
+    todo = split |> Enum.reject(&Regex.match?(regex, &1)) |> List.to_string()
+
+    case Date.from_iso8601(date) do
+      {:ok, valid_date} -> %{date: valid_date, todo: todo}
+      _ -> %{date: :none, todo: todo}
     end
   end
 end
