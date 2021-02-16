@@ -49,23 +49,44 @@ defmodule TodoTxt do
       iex> TodoTxt.parse_todo("2020-10-15 task due: 2021-09-13")
       %Todo{description: "task", creation_date: ~D[2020-10-15], due_date: ~D[2021-09-13]}
 
+      iex> TodoTxt.parse_todo("task pomo: (10/5) due: 2021-09-13 meta: data")
+      %Todo{description: "task", additional_fields: %{"meta" => "data", "pomo" => "(10/5)"}, due_date: ~D[2021-09-13]}
+
   """
   def parse_todo(todo_string) do
     {done_bool, completion_date, undone_todo_string} = done_task_check(todo_string)
     {creation_date, creation_dateless_todo_string} = creation_date_check(undone_todo_string)
     {priority, deprioritized_todo_string} = priority_task_check(creation_dateless_todo_string)
     {due_date, dueless_todo_string} = due_task_check(deprioritized_todo_string)
+    {additional_fields, description} = additional_fields_check(dueless_todo_string)
 
     %Todo{
+      additional_fields: additional_fields,
       completion_date: completion_date,
-      contexts: get_contexts(dueless_todo_string),
+      contexts: get_contexts(description),
       creation_date: creation_date,
-      description: dueless_todo_string,
+      description: description,
       done: done_bool,
       due_date: due_date,
       priority: priority,
-      projects: get_projects(dueless_todo_string)
+      projects: get_projects(description)
     }
+  end
+
+  defp additional_fields_check(todo_string, additional_fields \\ %{}) do
+    regex = ~r/\S*: \S*$/
+    trimmed_todo = String.trim(todo_string)
+
+    if Regex.match?(regex, trimmed_todo) do
+      [todo | add_fields_string] =
+        regex |> Regex.split(trimmed_todo, include_captures: true, trim: true)
+
+      [key | value_array] = String.split(List.last(add_fields_string), ":")
+      value = value_array |> List.to_string() |> String.trim()
+      additional_fields_check(todo, Map.put(additional_fields, key, value))
+    else
+      {additional_fields, String.trim(todo_string)}
+    end
   end
 
   defp creation_date_check(todo_string) do
@@ -75,7 +96,6 @@ defmodule TodoTxt do
 
   defp due_task_check(todo_string) do
     %{date: date, todo: todo} = date_extracter(~r/\sdue: \d{4}-\d{2}-\d{2}/, todo_string)
-
     {date, todo}
   end
 
@@ -100,8 +120,7 @@ defmodule TodoTxt do
   defp priority_task_check(todo_string) do
     priority_parsed =
       ~r/\([A-Z]\)/
-      |> Regex.split(todo_string, include_captures: true)
-      |> Enum.reject(&(&1 == ""))
+      |> Regex.split(todo_string, include_captures: true, trim: true)
 
     if Regex.match?(~r/\([A-Z]\)/, List.first(priority_parsed)) do
       [priority | deprioritized] = priority_parsed
@@ -141,7 +160,7 @@ defmodule TodoTxt do
   """
 
   def date_extracter(regex, todo_string_with_date) do
-    split = Regex.split(regex, todo_string_with_date, include_captures: true)
+    split = Regex.split(regex, todo_string_with_date, include_captures: true, trim: true)
 
     date =
       split
