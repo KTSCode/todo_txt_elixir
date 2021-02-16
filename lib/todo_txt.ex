@@ -46,21 +46,31 @@ defmodule TodoTxt do
       iex> TodoTxt.parse_todo("todo 2020-10-15 with due: 2021-09-13")
       %Todo{description: "todo 2020-10-15 with", due_date: ~D[2021-09-13]}
 
+      iex> TodoTxt.parse_todo("2020-10-15 task due: 2021-09-13")
+      %Todo{description: "task", creation_date: ~D[2020-10-15], due_date: ~D[2021-09-13]}
+
   """
   def parse_todo(todo_string) do
     {done_bool, completion_date, undone_todo_string} = done_task_check(todo_string)
-    {priority, deprioritized_todo_string} = priority_task_check(undone_todo_string)
+    {creation_date, creation_dateless_todo_string} = creation_date_check(undone_todo_string)
+    {priority, deprioritized_todo_string} = priority_task_check(creation_dateless_todo_string)
     {due_date, dueless_todo_string} = due_task_check(deprioritized_todo_string)
 
     %Todo{
+      completion_date: completion_date,
+      contexts: get_contexts(dueless_todo_string),
+      creation_date: creation_date,
       description: dueless_todo_string,
       done: done_bool,
-      completion_date: completion_date,
+      due_date: due_date,
       priority: priority,
-      contexts: get_contexts(dueless_todo_string),
-      projects: get_projects(dueless_todo_string),
-      due_date: due_date
+      projects: get_projects(dueless_todo_string)
     }
+  end
+
+  defp creation_date_check(todo_string) do
+    %{date: date, todo: todo} = date_extracter(~r/^\d{4}-\d{2}-\d{2}\s/, todo_string)
+    {date, todo}
   end
 
   defp due_task_check(todo_string) do
