@@ -173,7 +173,7 @@ defmodule TodoTxt do
 
     case Date.from_iso8601(date) do
       {:ok, valid_date} -> %{date: valid_date, todo: todo}
-      _ -> %{date: :none, todo: todo}
+      _ -> %{date: :none, todo: todo_string_with_date}
     end
   end
 end
