@@ -2,7 +2,6 @@ defmodule TodoTxt do
   @moduledoc """
   This module deals with parsing and structuring todo.txt data
   """
-  defstruct todos: [%Todo{description: ""}], done_todos: [%Todo{description: "", done: true}]
 
   @doc """
   parse_todo_txt parses a list of raw todo strings from a todo file into a
@@ -10,16 +9,11 @@ defmodule TodoTxt do
   ## Examples
 
       iex> TodoTxt.parse_todo_txt(["x done", "todo"])
-      %TodoTxt{todos: [%Todo{description: "todo", done: false}],
-        done_todos: [%Todo{description: "done", done: true}]}
+      [%Todo{description: "done", done: true}, %Todo{description: "todo", done: false}]
+
   """
   def parse_todo_txt(list_of_todos) do
-    {done, undone} =
-      list_of_todos
-      |> Enum.map(&parse_todo/1)
-      |> Enum.split_with(& &1.done)
-
-    %TodoTxt{todos: undone, done_todos: done}
+    Enum.map(list_of_todos, &parse_todo/1)
   end
 
   @doc """
