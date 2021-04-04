@@ -37,6 +37,7 @@ defmodule TodoTxt.MixProject do
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.23.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.13.0", only: :test},
+      {:file_system, "~> 0.2"},
       {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false}
     ]
