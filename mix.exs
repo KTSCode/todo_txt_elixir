@@ -39,7 +39,8 @@ defmodule TodoTxt.MixProject do
       {:excoveralls, "~> 0.13.0", only: :test},
       {:file_system, "~> 0.2"},
       {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
-      {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
+      {:recon_ex, "~> 0.9.1"}
     ]
   end
 end

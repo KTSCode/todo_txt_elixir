@@ -31,6 +31,9 @@ defmodule TodoTxt do
       iex> TodoTxt.todo_to_string(%Todo{description: "done", done: true, completion_date: ~D[2020-09-13]})
       "x 2020-09-13 done"
 
+      iex> TodoTxt.todo_to_string(%Todo{description: "top priority", priority: :A })
+      "(A) top priority"
+      
 
   """
   def todo_to_string(todo_struct) do
