@@ -16,8 +16,8 @@ defmodule TodoTxt.MixProject do
         plt_file: {:no_warn, "todotxt_elixir.plt"}
       ],
       app: :todotxt_elixir,
-      version: "0.1.0",
-      elixir: "~> 1.11.3",
+      version: "0.0.1",
+      elixir: "~> 1.12.2",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -40,6 +40,7 @@ defmodule TodoTxt.MixProject do
       {:file_system, "~> 0.2"},
       {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
+      {:nimble_parsec, "~> 1.1.0"},
       {:recon_ex, "~> 0.9.1"}
     ]
   end
