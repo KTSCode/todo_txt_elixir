@@ -41,7 +41,7 @@ defmodule TodoTxt.MixProject do
       {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
       {:nimble_parsec, "~> 1.1.0"},
-      {:recon_ex, "~> 0.9.1"}
+      {:recon, "~> 2.5.2"}
     ]
   end
 end

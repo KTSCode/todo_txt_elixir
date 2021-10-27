@@ -4,55 +4,6 @@ defmodule TodoTxt do
   """
 
   @doc """
-  parse_todo_txt parses a list of raw todo strings from a todo file into a
-
-  ## Examples
-
-      iex> TodoTxt.parse_todo_txt(["x done", "todo"])
-      [%Todo{description: "done", done: true}, %Todo{description: "todo", done: false}]
-
-  """
-  def parse_todo_txt(list_of_todo_strings) do
-    Enum.map(list_of_todo_strings, &parse_todo/1)
-  end
-
-  # def write_todos(list_of_todo_structs) do
-
-  # end
-
-  @doc """
-  converts a Todo struct into a string that would be found in a todo.txt file.
-  The inverse of the parse_todo function
-
-  ## Examples
-      iex> TodoTxt.todo_to_string(%Todo{description: "done", done: true})
-      "x done"
-
-      iex> TodoTxt.todo_to_string(%Todo{description: "done", done: true, completion_date: ~D[2020-09-13]})
-      "x 2020-09-13 done"
-
-      iex> TodoTxt.todo_to_string(%Todo{description: "top priority", priority: :A })
-      "(A) top priority"
-      
-
-  """
-  def todo_to_string(todo_struct) do
-    %{description: description, done: done, completion_date: completion_date} = todo_struct
-
-    description
-    |> todo_completion_date_to_string(completion_date)
-    |> (fn str -> if done, do: "x #{str}", else: str end).()
-  end
-
-  defp todo_completion_date_to_string(str, completion_date) do
-    case completion_date do
-      %Date{} -> "#{completion_date} #{str}"
-      :none -> str
-      _ -> str
-    end
-  end
-
-  @doc """
   parse_todo parses a raw todo string into a Todo struct
 
   ## Examples
