@@ -52,7 +52,7 @@ defmodule Todo do
 
   """
   def to_string(todo) do
-    %{
+    %Todo{
       additional_fields: additional_fields,
       completion_date: completion_date,
       contexts: contexts,
