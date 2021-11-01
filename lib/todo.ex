@@ -120,6 +120,7 @@ defmodule Todo do
   end
 
   @doc """
+  TODO: Switch to using NimbleParsec to parse todo strings
   parse_todo parses a raw todo string into a Todo struct
 
   ## Examples
