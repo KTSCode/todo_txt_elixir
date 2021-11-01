@@ -2,6 +2,7 @@ defmodule Todo do
   @moduledoc """
     Struct and functions for operating on ToDos
   """
+  import NimbleParsec
 
   @enforce_keys [:description]
   defstruct additional_fields: %{},
@@ -149,7 +150,82 @@ defmodule Todo do
       iex> Todo.parse("task due:2021-09-13 meta:data")
       %Todo{description: "task", additional_fields: %{"meta" => "data"}, due_date: ~D[2021-09-13]}
 
+      iex> Todo.parse_done("x (A) 2020-09-01 2020-09-02 this is a test due:2021-10-31")
+      {:ok, [done: true]}
+
   """
+  date =
+    integer(4)
+    |> ignore(string("-"))
+    |> integer(2)
+    |> ignore(string("-"))
+    |> integer(2)
+    |> reduce({Enum, :join, ["-"]})
+
+  priority =
+    ignore(string(" "))
+    |> optional
+    |> ignore(string("("))
+    |> ascii_string([?A..?Z], 1)
+    |> ignore(string(")"))
+    |> map({String, :to_atom, []})
+    |> unwrap_and_tag(:priority)
+    |> optional
+
+  completion_date =
+    ignore(string(" "))
+    |> optional
+    |> concat(date)
+    |> unwrap_and_tag(:completion_date)
+    |> optional
+
+  creation_date =
+    optional(ignore(string(" ")))
+    |> concat(date)
+    |> unwrap_and_tag(:creation_date)
+    |> optional
+
+  done =
+    replace(string("x "), true)
+    |> unwrap_and_tag(:done)
+    |> concat(priority)
+    |> concat(completion_date)
+    |> concat(creation_date)
+
+  not_done =
+    replace(empty(), false)
+    |> unwrap_and_tag(:done)
+    |> concat(priority)
+    |> concat(creation_date)
+
+  due_date =
+    ignore(string(" "))
+    |> ignore(string("due:"))
+    |> concat(date)
+    |> unwrap_and_tag(:due_date)
+
+  description =
+    string(" ")
+    |> ignore
+    |> optional
+    |> utf8_string([not: ?\s], min: 1)
+    # TODO add other metadata parsers
+    |> lookahead_not(due_date)
+    |> repeat
+    |> optional(ignore(string(" ")))
+    |> utf8_string([not: ?\s], min: 0)
+    |> reduce({Enum, :join, [" "]})
+    |> unwrap_and_tag(:description)
+
+  rest = description |> optional(due_date)
+
+  # TODO: post process context and projects 
+  defparsec(
+    :parse_done,
+    choice([done, not_done])
+    |> concat(rest)
+  )
+
   def parse(str) do
     {done_bool, completion_date, undone_str} = done_task_check(str)
     {creation_date, creation_dateless_str} = creation_date_check(undone_str)

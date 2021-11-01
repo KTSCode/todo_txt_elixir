@@ -22,6 +22,7 @@ defmodule TodoTest do
     assert Todo.to_string(todo) == expected_string
   end
 
+  @tag :skip
   test "parse" do
     expected_todo = %Todo{
       description: "This test has everything",
