@@ -13,16 +13,18 @@ defmodule TodoTxt.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
-        plt_file: {:no_warn, "todotxt_elixir.plt"}
+        plt_file: {:no_warn, "todo_txt.plt"}
       ],
-      app: :todotxt_elixir,
+      app: :todo_txt,
       version: "0.1.0",
       elixir: "~> 1.12.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      description: description(),
+      package: package(),
       # Docs
       name: "TodoTxt",
-      source_url: "https://github.com/KTSCode/todotxt_elixir",
+      source_url: "https://github.com/KTSCode/todo_txt",
       docs: [
         # The main page in the docs
         main: "Todo",
@@ -39,6 +41,19 @@ defmodule TodoTxt.MixProject do
     ]
   end
 
+  defp description() do
+    "A library for reading/parseing/writing todo.txt files"
+  end
+
+  defp package() do
+    [
+      # These are the default files included in the package
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/KTSCode/todo_txt"}
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
@@ -46,11 +61,10 @@ defmodule TodoTxt.MixProject do
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.23.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.13.0", only: :test},
-      {:file_system, "~> 0.2"},
       {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
       {:nimble_parsec, "~> 1.1.0"},
-      {:recon, "~> 2.5.2"}
+      {:recon, "~> 2.5.2", only: :dev, runtime: false}
     ]
   end
 end
