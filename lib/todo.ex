@@ -17,7 +17,6 @@ defmodule Todo do
 
   @doc """
   converts a Todo struct into a string that would be found in a todo.txt file.
-  The inverse of the parse_todo function
 
   ## Examples
       iex> Todo.to_string(%Todo{description: "done", done: true})

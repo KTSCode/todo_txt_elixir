@@ -16,10 +16,19 @@ defmodule TodoTxt.MixProject do
         plt_file: {:no_warn, "todotxt_elixir.plt"}
       ],
       app: :todotxt_elixir,
-      version: "0.0.1",
+      version: "0.1.0",
       elixir: "~> 1.12.2",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      # Docs
+      name: "TodoTxt",
+      source_url: "https://github.com/KTSCode/todotxt_elixir",
+      docs: [
+        # The main page in the docs
+        main: "Todo",
+        logo: "todotxt_logo_2012.png",
+        extras: ["README.md"]
+      ]
     ]
   end
 
