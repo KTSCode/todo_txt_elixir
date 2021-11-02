@@ -4,12 +4,11 @@ defmodule Todo do
   """
   import NimbleParsec
 
-  @enforce_keys [:description]
   defstruct additional_fields: %{},
             completion_date: :none,
             contexts: [],
             creation_date: :none,
-            description: nil,
+            description: "",
             done: false,
             due_date: :none,
             pomodori: :none,
@@ -121,8 +120,7 @@ defmodule Todo do
   end
 
   @doc """
-  TODO: Switch to using NimbleParsec to parse todo strings
-  parse_todo parses a raw todo string into a Todo struct
+  parse parses a raw todo string into a Todo struct
 
   ## Examples
 
@@ -147,42 +145,83 @@ defmodule Todo do
       iex> Todo.parse("2020-10-15 task due:2021-09-13")
       %Todo{description: "task", creation_date: ~D[2020-10-15], due_date: ~D[2021-09-13]}
 
-      iex> Todo.parse("task due:2021-09-13 meta:data")
-      %Todo{description: "task", additional_fields: %{"meta" => "data"}, due_date: ~D[2021-09-13]}
+      iex> Todo.parse("task meta:data meta1:data1")
+      %Todo{description: "task", additional_fields: %{"meta" => "data", "meta1" => "data1"}}
 
-      iex> Todo.parse_done("x (A) 2020-09-01 2020-09-02 this is a test due:2021-10-31")
-      {:ok, [done: true]}
+      iex> Todo.parse("task due:2021-09-13 meta:data meta1:data1")
+      %Todo{description: "task", additional_fields: %{"meta" => "data", "meta1" => "data1"}, due_date: ~D[2021-09-13]}
 
   """
+  def parse(str) do
+    case parser(str) do
+      {:ok, parsed, "", _, _, _} -> Enum.reduce(parsed, %Todo{}, &set_from_parsed/2)
+      {:error, message, _, _, _, _} -> message
+    end
+  end
+
+  # Reusable Combinators
+  ignore_spaces =
+    string(" ")
+    |> ignore()
+    |> repeat()
+    |> optional()
+    |> label("Ignore spaces")
+
   date =
     integer(4)
-    |> ignore(string("-"))
-    |> integer(2)
-    |> ignore(string("-"))
-    |> integer(2)
-    |> reduce({Enum, :join, ["-"]})
+    |> string("-")
+    |> integer(1)
+    |> integer(1)
+    |> string("-")
+    |> integer(1)
+    |> integer(1)
+    |> reduce({Enum, :join, [""]})
+    |> label("Parse date")
 
-  priority =
-    ignore(string(" "))
-    |> optional
-    |> ignore(string("("))
-    |> ascii_string([?A..?Z], 1)
-    |> ignore(string(")"))
-    |> map({String, :to_atom, []})
-    |> unwrap_and_tag(:priority)
-    |> optional
+  # Specific Combinators
+  additional_fields =
+    ignore_spaces
+    |> ascii_string([not: ?:, not: ?\s], min: 1)
+    |> ignore(string(":"))
+    |> ascii_string([not: ?:, not: ?\s], min: 1)
+    |> tag(:additional_fields)
 
   completion_date =
-    ignore(string(" "))
+    ignore_spaces
     |> optional
     |> concat(date)
     |> unwrap_and_tag(:completion_date)
     |> optional
 
   creation_date =
-    optional(ignore(string(" ")))
+    ignore_spaces
     |> concat(date)
     |> unwrap_and_tag(:creation_date)
+    |> optional
+
+  due_date =
+    ignore_spaces
+    |> ignore(string("due:"))
+    |> concat(date)
+    |> unwrap_and_tag(:due_date)
+
+  pomodori =
+    ignore_spaces
+    |> ignore(string("(#pomo: "))
+    |> ascii_string([?0..?9], min: 1)
+    |> ignore(string("/"))
+    |> ascii_string([?0..?9], min: 1)
+    |> ignore(string(")"))
+    |> map({String, :to_integer, []})
+    |> tag(:pomodori)
+
+  priority =
+    ignore_spaces
+    |> ignore(string("("))
+    |> ascii_string([?A..?Z], 1)
+    |> ignore(string(")"))
+    |> map({String, :to_atom, []})
+    |> unwrap_and_tag(:priority)
     |> optional
 
   done =
@@ -198,155 +237,97 @@ defmodule Todo do
     |> concat(priority)
     |> concat(creation_date)
 
-  due_date =
-    ignore(string(" "))
-    |> ignore(string("due:"))
-    |> concat(date)
-    |> unwrap_and_tag(:due_date)
-
   description =
-    string(" ")
-    |> ignore
-    |> optional
+    ignore_spaces
     |> utf8_string([not: ?\s], min: 1)
-    # TODO add other metadata parsers
-    |> lookahead_not(due_date)
+    |> lookahead_not(choice([due_date, additional_fields, pomodori, eos()]))
     |> repeat
     |> optional(ignore(string(" ")))
     |> utf8_string([not: ?\s], min: 0)
     |> reduce({Enum, :join, [" "]})
     |> unwrap_and_tag(:description)
+    |> label("Description")
 
-  rest = description |> optional(due_date)
+  rest =
+    description
+    |> optional(due_date)
+    |> optional(repeat(additional_fields))
+    |> optional(pomodori)
 
-  # TODO: post process context and projects 
-  defparsec(
-    :parse_done,
-    choice([done, not_done])
-    |> concat(rest)
-  )
+  defparsecp(:parser, choice([done, not_done]) |> concat(rest))
 
-  def parse(str) do
-    {done_bool, completion_date, undone_str} = done_task_check(str)
-    {creation_date, creation_dateless_str} = creation_date_check(undone_str)
-    {priority, deprioritized_str} = priority_task_check(creation_dateless_str)
-    {due_date, dueless_str} = due_task_check(deprioritized_str)
-    {additional_fields, description} = additional_fields_check(dueless_str)
+  contexts =
+    ignore(string("@"))
+    |> ascii_string([not: ?\s], min: 1)
+    |> eventually()
+    |> repeat
+    |> map({String, :to_atom, []})
+    |> label("Contexts")
 
-    %Todo{
-      additional_fields: additional_fields,
-      completion_date: completion_date,
-      contexts: get_contexts(description),
-      creation_date: creation_date,
-      description: description,
-      done: done_bool,
-      due_date: due_date,
-      priority: priority,
-      projects: get_projects(description)
-    }
+  defparsecp(:context_parser, contexts |> optional)
+
+  projects =
+    ignore(string("+"))
+    |> ascii_string([not: ?\s], min: 1)
+    |> eventually()
+    |> repeat
+    |> map({String, :to_atom, []})
+    |> label("Projects")
+
+  defparsecp(:project_parser, projects |> optional)
+
+  defp set_from_parsed({:additional_fields, [key, value]}, todo) do
+    Map.update(todo, :additional_fields, %{key => value}, &Map.put_new(&1, key, value))
   end
 
-  defp additional_fields_check(str, additional_fields \\ %{}) do
-    regex = ~r/\S*:\S*/
-    trimmed_todo = String.trim(str)
-
-    if Regex.match?(regex, trimmed_todo) do
-      [todo | add_fields_string] =
-        regex |> Regex.split(trimmed_todo, include_captures: true, trim: true)
-
-      [key | value_array] = String.split(List.last(add_fields_string), ":")
-      value = value_array |> List.to_string() |> String.trim()
-      additional_fields_check(todo, Map.put(additional_fields, key, value))
-    else
-      {additional_fields, String.trim(str)}
-    end
-  end
-
-  defp creation_date_check(str) do
-    %{date: date, todo: todo} = date_extracter(~r/^\d{4}-\d{2}-\d{2}\s/, str)
-    {date, todo}
-  end
-
-  defp due_task_check(str) do
-    %{date: date, todo: todo} = date_extracter(~r/\sdue:\d{4}-\d{2}-\d{2}/, str)
-    {date, todo}
-  end
-
-  defp get_contexts(str) do
-    ~r/\s\@\S*/
-    |> Regex.scan(str)
-    |> List.flatten()
-    |> Enum.map(&String.trim/1)
-    |> Enum.map(&String.trim(&1, "@"))
-    |> Enum.map(&String.to_atom/1)
-  end
-
-  defp get_projects(str) do
-    ~r/\s\+\S*/
-    |> Regex.scan(str)
-    |> List.flatten()
-    |> Enum.map(&String.trim/1)
-    |> Enum.map(&String.trim(&1, "+"))
-    |> Enum.map(&String.to_atom/1)
-  end
-
-  defp priority_task_check(str) do
-    priority_parsed =
-      ~r/\([A-Z]\)/
-      |> Regex.split(str, include_captures: true, trim: true)
-
-    if Regex.match?(~r/\([A-Z]\)/, List.first(priority_parsed)) do
-      [priority | deprioritized] = priority_parsed
-
-      {String.to_atom(List.first(Regex.run(~r/[A-Z]/, priority))),
-       String.trim(Enum.join(deprioritized, ""))}
-    else
-      {:none, str}
-    end
-  end
-
-  defp done_task_check(str) do
-    case str do
-      "x " <> clean_str ->
-        %{date: date, todo: todo} = date_extracter(~r/^\d{4}-\d{2}-\d{2}\s/, clean_str)
-        {true, date, todo}
-
-      clean_str ->
-        {false, :none, clean_str}
-    end
-  end
-
-  @doc """
-  helper function that takes regex and a string, then uses the regex to find a pattern in the string and extract a date from it
-
-  ## Examples
-
-      iex> Todo.date_extracter(~r/\\sdue: \\d{4}-\\d{2}-\\d{2}\/, "Give speech due: 1963-08-28")
-      %{date: ~D[1963-08-28], todo: "Give speech"}
-
-      iex> Todo.date_extracter(~r/^\\d{4}-\\d{2}-\\d{2}\\s/, "1963-08-28 Give speech")
-      %{date: ~D[1963-08-28], todo: "Give speech"}
-
-      iex> Todo.date_extracter(~r/^\\d{4}-\\d{2}-\\d{2}\\s/, "1963-08-28 Give speech, save the date: 1964-10-14")
-      %{date: ~D[1963-08-28], todo: "Give speech, save the date: 1964-10-14"}
-
-  """
-
-  def date_extracter(regex, todo_string_with_date) do
-    split = Regex.split(regex, todo_string_with_date, include_captures: true, trim: true)
-
-    date =
-      split
-      |> Enum.reject(&(!Regex.match?(regex, &1)))
-      |> List.to_string()
-      |> (fn string -> Regex.scan(~r/\d{4}-\d{2}-\d{2}/, string) end).()
-      |> List.to_string()
-
-    todo = split |> Enum.reject(&Regex.match?(regex, &1)) |> List.to_string()
-
+  defp set_from_parsed({:completion_date, date}, todo) do
     case Date.from_iso8601(date) do
-      {:ok, valid_date} -> %{date: valid_date, todo: todo}
-      _ -> %{date: :none, todo: todo_string_with_date}
+      {:ok, valid_date} -> Map.put(todo, :completion_date, valid_date)
+      _ -> Map.put(todo, :completion_date, {:error, "Invalid completion date #{date}"})
     end
+  end
+
+  defp set_from_parsed({:creation_date, date}, todo) do
+    case Date.from_iso8601(date) do
+      {:ok, valid_date} -> Map.put(todo, :creation_date, valid_date)
+      _ -> Map.put(todo, :creation_date, {:error, "Invalid creation date #{date}"})
+    end
+  end
+
+  defp set_from_parsed({:description, description}, todo) do
+    contexts =
+      case context_parser(description) do
+        {:ok, contexts, _, _, _, _} -> contexts
+        {:error, message, _, _, _, _} -> {:error, message}
+      end
+
+    projects =
+      case project_parser(description) do
+        {:ok, projects, _, _, _, _} -> projects
+        {:error, message, _, _, _, _} -> {:error, message}
+      end
+
+    Map.put(todo, :description, description)
+    |> Map.put(:contexts, contexts)
+    |> Map.put(:projects, projects)
+  end
+
+  defp set_from_parsed({:done, done}, todo) do
+    Map.put(todo, :done, done)
+  end
+
+  defp set_from_parsed({:due_date, date}, todo) do
+    case Date.from_iso8601(date) do
+      {:ok, valid_date} -> Map.put(todo, :due_date, valid_date)
+      _ -> Map.put(todo, :due_date, {:error, "Invalid due date #{date}"})
+    end
+  end
+
+  defp set_from_parsed({:pomodori, [completed, total]}, todo) do
+    Map.put(todo, :pomodori, {completed, total})
+  end
+
+  defp set_from_parsed({:priority, priority}, todo) do
+    Map.put(todo, :priority, priority)
   end
 end

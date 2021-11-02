@@ -4,7 +4,7 @@ defmodule TodoTest do
 
   test "to_string" do
     todo = %Todo{
-      description: "This test has everything",
+      description: "This test has everything @context1 @context2 +project1 +project2",
       additional_fields: %{"key1" => "value1", "key2" => "value2"},
       done: true,
       completion_date: ~D[2020-09-13],
@@ -22,10 +22,9 @@ defmodule TodoTest do
     assert Todo.to_string(todo) == expected_string
   end
 
-  @tag :skip
   test "parse" do
     expected_todo = %Todo{
-      description: "This test has everything",
+      description: "This test has everything @context1 @context2 +project1 +project2",
       additional_fields: %{"key1" => "value1", "key2" => "value2"},
       done: true,
       completion_date: ~D[2020-09-13],
