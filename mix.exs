@@ -16,8 +16,8 @@ defmodule TodoTxt.MixProject do
         plt_file: {:no_warn, "todo_txt.plt"}
       ],
       app: :todo_txt,
-      version: "0.1.0",
-      elixir: "~> 1.12.2",
+      version: "0.2.0",
+      elixir: "~> 1.13.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
