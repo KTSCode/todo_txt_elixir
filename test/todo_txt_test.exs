@@ -3,8 +3,8 @@ defmodule TodoTxtTest do
   doctest TodoTxt
 
   test "init" do
-    # TODO write tests
-    # - Test :os.type
+    # TODO programatically get path for ./fixtures/todo_txts/todo.txt
+    # Test that gen server starts when path is passed to start_link
     assert true
   end
 end
