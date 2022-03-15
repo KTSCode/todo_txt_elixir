@@ -147,14 +147,24 @@ defmodule Todo do
       iex> Todo.parse("task meta:data meta1:data1")
       %Todo{description: "task", additional_fields: %{"meta" => "data", "meta1" => "data1"}}
 
+      iex> Todo.parse("task meta:data meta1:data1 @context")
+      %Todo{description: "task @context", contexts: [:context], additional_fields: %{"meta" => "data", "meta1" => "data1"}}
+
       iex> Todo.parse("task due:2021-09-13 meta:data meta1:data1")
       %Todo{description: "task", additional_fields: %{"meta" => "data", "meta1" => "data1"}, due_date: ~D[2021-09-13]}
 
   """
   def parse(str) do
     case parser(str) do
-      {:ok, parsed, "", _, _, _} -> Enum.reduce(parsed, %Todo{}, &set_from_parsed/2)
-      {:error, message, _, _, _, _} -> message
+      {:ok, parsed, "", _, _, _} ->
+        Enum.reduce(parsed, %Todo{}, &set_from_parsed/2)
+
+      {:ok, parsed, additional_description, _, _, _} ->
+        todo = Enum.reduce(parsed, %Todo{}, &set_from_parsed/2)
+        set_from_parsed({:description, additional_description}, todo)
+
+      {:error, message, _, _, _, _} ->
+        message
     end
   end
 
@@ -294,6 +304,8 @@ defmodule Todo do
   end
 
   defp set_from_parsed({:description, description}, todo) do
+    %Todo{description: d, contexts: c, projects: p} = todo
+
     contexts =
       case context_parser(description) do
         {:ok, contexts, _, _, _, _} -> contexts
@@ -306,9 +318,11 @@ defmodule Todo do
         {:error, message, _, _, _, _} -> {:error, message}
       end
 
-    Map.put(todo, :description, description)
-    |> Map.put(:contexts, contexts)
-    |> Map.put(:projects, projects)
+    new_descriptions = String.trim(d <> description)
+
+    Map.put(todo, :description, new_descriptions)
+    |> Map.put(:contexts, c ++ contexts)
+    |> Map.put(:projects, p ++ projects)
   end
 
   defp set_from_parsed({:done, done}, todo) do
