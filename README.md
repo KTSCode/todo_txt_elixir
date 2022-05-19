@@ -56,3 +56,4 @@ File.write!("done.txt", Enum.join(Enum.map(done, &Todo.to_string/1), "\n"))
 ## Roadmap
 - Add a File Watcher for Local todo.txt
 - Add a File Watcher for Google Drive todo.txt
+- Add Vapor for starting application with config file or environment variable
