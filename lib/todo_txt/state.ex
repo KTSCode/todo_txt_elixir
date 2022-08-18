@@ -1,16 +1,16 @@
 defmodule TodoTxt.State do
-  @enforce_keys [:todo_txt_file_path]
-
   alias TodoTxt.State
 
-  defstruct todo_txt_file_path: :none,
-            done_txt_file_path: :none,
+  defstruct todo_txt_file_path: "#{System.get_env("TODO_DIR")}/todo.txt",
+            done_txt_file_path: "#{System.get_env("TODO_DIR")}/done.txt",
             file_location: :local,
             options: [],
             todos: [],
             history: :none
 
-  def new(input), do: load_todos(struct(State, input))
+  def new(state = %State{}) do
+    load_todos(state)
+  end
 
   defp validate(state) do
     %State{

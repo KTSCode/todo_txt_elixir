@@ -4,5 +4,5 @@
 (C) Add cover sheets @Office +TPSReports
 Plan backyard herb garden @Home
 Pick up milk @GroceryStore
-Research self-publishing services +Novel @Computer
+Research self-publishing services +Novel @Computer url:https://www.selfpublishingservices.com
 x Download Todo.txt mobile app @Phone
