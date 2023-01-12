@@ -17,7 +17,7 @@ defmodule TodoTxt.MixProject do
       ],
       app: :todo_txt,
       version: "0.1.0",
-      elixir: "~> 1.12.2",
+      elixir: "~> 1.14.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
@@ -57,11 +57,11 @@ defmodule TodoTxt.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.5.5", only: :dev, runtime: false},
+      {:credo, "~> 1.6.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.23.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.13.0", only: :test},
-      {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
+      {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
       {:nimble_parsec, "~> 1.1.0"},
       {:recon, "~> 2.5.2", only: :dev, runtime: false}
