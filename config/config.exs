@@ -21,6 +21,7 @@ if Mix.env() == :dev do
           {:cmd, "mix compile --warnings-as-errors"},
           {:cmd, "mix credo --strict"},
           {:cmd, "mix test --color"},
+          {:cmd, "mix dialyzer --format dialyxir"},
           {:cmd, "echo 'success!'"}
         ]
       ]

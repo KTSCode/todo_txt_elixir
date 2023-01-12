@@ -302,17 +302,8 @@ defmodule Todo do
   end
 
   defp set_from_parsed({:description, description}, todo) do
-    contexts =
-      case context_parser(description) do
-        {:ok, contexts, _, _, _, _} -> contexts
-        {:error, message, _, _, _, _} -> {:error, message}
-      end
-
-    projects =
-      case project_parser(description) do
-        {:ok, projects, _, _, _, _} -> projects
-        {:error, message, _, _, _, _} -> {:error, message}
-      end
+    {:ok, contexts, _, _, _, _} = context_parser(description)
+    {:ok, projects, _, _, _, _} = project_parser(description)
 
     Map.put(todo, :description, description)
     |> Map.put(:contexts, contexts)

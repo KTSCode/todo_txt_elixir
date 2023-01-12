@@ -13,7 +13,7 @@ defmodule TodoTxt.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
-        plt_file: {:no_warn, "todo_txt.plt"}
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       app: :todo_txt,
       version: "0.1.0",
