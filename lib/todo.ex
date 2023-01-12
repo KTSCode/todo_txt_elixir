@@ -67,14 +67,22 @@ defmodule Todo do
     description
     |> todo_date_to_string(creation_date)
     |> todo_date_to_string(completion_date)
-    |> (fn str -> if priority == :none, do: str, else: "(#{priority}) #{str}" end).()
-    |> (fn str -> if done, do: "x #{str}", else: str end).()
+    |> add_priority_to_string(priority)
+    |> add_done_to_string(done)
     |> add_atom_list("@", contexts)
     |> add_atom_list("+", projects)
     |> todo_due_date_to_string(due_date)
     |> append_additional_fields(additional_fields)
     |> add_pomo(pomodori)
   end
+
+  defp add_priority_to_string(str, :none), do: str
+
+  defp add_priority_to_string(str, priority) when is_atom(priority), do: "(#{priority}) #{str}"
+
+  defp add_done_to_string(str, true), do: "x #{str}"
+
+  defp add_done_to_string(str, false), do: str
 
   defp add_pomo(str, :none), do: str
 
