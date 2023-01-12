@@ -16,7 +16,7 @@ defmodule TodoTxt.MixProject do
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       app: :todo_txt,
-      version: "0.1.0",
+      version: "0.2.0-dev",
       elixir: "~> 1.14.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
