@@ -8,3 +8,7 @@ erl_crash.dump
 *.beam
 /config/*.secret.exs
 .elixir_ls/
+
+# Dialyzer Files
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
