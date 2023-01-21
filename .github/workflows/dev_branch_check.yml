@@ -1,0 +1,14 @@
+name: Dev Branch Deploy
+
+on:
+  push:
+    branches:
+      - "v*.*.*-dev"
+
+jobs:
+  build:
+    name: No Op
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Yep It's a Dev Branch"

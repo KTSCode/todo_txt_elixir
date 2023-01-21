@@ -16,7 +16,7 @@ defmodule TodoTxt.MixProject do
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       app: :todo_txt,
-      version: "0.2.0-dev",
+      version: "0.2.0",
       elixir: "~> 1.14.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,7 @@ defmodule TodoTxt.MixProject do
       source_url: "https://github.com/KTSCode/todo_txt",
       docs: [
         # The main page in the docs
-        main: "Todo",
+        main: "TodoTxt",
         logo: "todotxt_logo_2012.png",
         extras: ["README.md"]
       ]
@@ -42,7 +42,7 @@ defmodule TodoTxt.MixProject do
   end
 
   defp description() do
-    "A library for reading/parseing/writing todo.txt files"
+    "A library for reading/parsing/writing todo.txt files"
   end
 
   defp package() do
@@ -50,7 +50,7 @@ defmodule TodoTxt.MixProject do
       # These are the default files included in the package
       files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/KTSCode/todo_txt"}
+      links: %{"GitHub" => "https://github.com/KTSCode/todo_txt_elixir"}
     ]
   end
 
