@@ -67,14 +67,22 @@ defmodule Todo do
     description
     |> todo_date_to_string(creation_date)
     |> todo_date_to_string(completion_date)
-    |> (fn str -> if priority == :none, do: str, else: "(#{priority}) #{str}" end).()
-    |> (fn str -> if done, do: "x #{str}", else: str end).()
+    |> add_priority_to_string(priority)
+    |> add_done_to_string(done)
     |> add_atom_list("@", contexts)
     |> add_atom_list("+", projects)
     |> todo_due_date_to_string(due_date)
     |> append_additional_fields(additional_fields)
     |> add_pomo(pomodori)
   end
+
+  defp add_priority_to_string(str, :none), do: str
+
+  defp add_priority_to_string(str, priority) when is_atom(priority), do: "(#{priority}) #{str}"
+
+  defp add_done_to_string(str, true), do: "x #{str}"
+
+  defp add_done_to_string(str, false), do: str
 
   defp add_pomo(str, :none), do: str
 
@@ -294,17 +302,8 @@ defmodule Todo do
   end
 
   defp set_from_parsed({:description, description}, todo) do
-    contexts =
-      case context_parser(description) do
-        {:ok, contexts, _, _, _, _} -> contexts
-        {:error, message, _, _, _, _} -> {:error, message}
-      end
-
-    projects =
-      case project_parser(description) do
-        {:ok, projects, _, _, _, _} -> projects
-        {:error, message, _, _, _, _} -> {:error, message}
-      end
+    {:ok, contexts, _, _, _, _} = context_parser(description)
+    {:ok, projects, _, _, _, _} = project_parser(description)
 
     Map.put(todo, :description, description)
     |> Map.put(:contexts, contexts)

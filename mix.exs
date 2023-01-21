@@ -13,11 +13,11 @@ defmodule TodoTxt.MixProject do
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true,
-        plt_file: {:no_warn, "todo_txt.plt"}
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       app: :todo_txt,
-      version: "0.1.0",
-      elixir: "~> 1.12.2",
+      version: "0.2.0",
+      elixir: "~> 1.14.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
@@ -27,7 +27,7 @@ defmodule TodoTxt.MixProject do
       source_url: "https://github.com/KTSCode/todo_txt",
       docs: [
         # The main page in the docs
-        main: "Todo",
+        main: "TodoTxt",
         logo: "todotxt_logo_2012.png",
         extras: ["README.md"]
       ]
@@ -42,7 +42,7 @@ defmodule TodoTxt.MixProject do
   end
 
   defp description() do
-    "A library for reading/parseing/writing todo.txt files"
+    "A library for reading/parsing/writing todo.txt files"
   end
 
   defp package() do
@@ -50,18 +50,18 @@ defmodule TodoTxt.MixProject do
       # These are the default files included in the package
       files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/KTSCode/todo_txt"}
+      links: %{"GitHub" => "https://github.com/KTSCode/todo_txt_elixir"}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.5.5", only: :dev, runtime: false},
+      {:credo, "~> 1.6.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.23.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.29.1", only: :dev, runtime: false},
       {:excoveralls, "~> 0.13.0", only: :test},
-      {:git_hooks, "~> 0.5.2", only: :dev, runtime: false},
+      {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false},
       {:mix_test_watch, "~> 1.0.2", only: :dev, runtime: false},
       {:nimble_parsec, "~> 1.1.0"},
       {:recon, "~> 2.5.2", only: :dev, runtime: false}
