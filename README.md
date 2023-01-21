@@ -63,6 +63,7 @@ GitHub Actions Workflows are used to manage the publishing of new versions to [H
 This process assumes each merged PR passes CI checks before being merged
 
 #### New Branch Workflow
+- [ci.yml](.github/workflows/ci.yml)
 - [check_new_branch.yml](.github/workflows/check_version_branch.yml)
 ```mermaid
 graph TD
@@ -76,6 +77,7 @@ graph TD
 ```
 
 #### Merge Into Dev Branch Workflow
+- [ci.yml](.github/workflows/ci.yml)
 - [dev_branch.yml](.github/workflows/dev_branch.yml)
 - [deploy_to_hex.yml](.github/workflows/deploy_to_hex.yml)
 ```mermaid
@@ -92,6 +94,7 @@ graph TD
 ```
 
 #### Merge Into Main Branch Workflow
+- [ci.yml](.github/workflows/ci.yml)
 - [deploy_new_version.yml](.github/workflows/merged_into_dev_branch.yml)
 - [deploy_to_hex.yml](.github/workflows/deploy_to_hex.yml)
 ```mermaid
